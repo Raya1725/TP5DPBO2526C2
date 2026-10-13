@@ -122,7 +122,6 @@ public class Person {
 
     /**
      * @return posisi karyawan
-     *
      * Kompleksitas: waktu O(1), memori O(1).
      */
     String getPosisi(){

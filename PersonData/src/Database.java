@@ -15,7 +15,6 @@ public class Database {
     /**
      * Membuka koneksi ke database dan menyiapkan Statement.
      * Dilempar ulang sebagai RuntimeException agar kegagalan koneksi tidak diam-diam diabaikan.
-     *
      * Kompleksitas: waktu O(1) di sisi Java (selain waktu jaringan), memori O(1).
      */
     public Database(){

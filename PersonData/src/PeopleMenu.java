@@ -105,7 +105,6 @@ public class PeopleMenu extends JFrame {
     /**
      * Mengembalikan form ke kondisi awal (mode tambah data).
      * Dipanggil setelah operasi selesai atau saat pengguna menekan Cancel.
-     *
      * Kompleksitas: waktu O(1), memori O(1).
      */
     public void clearForm(){
@@ -271,7 +270,6 @@ public class PeopleMenu extends JFrame {
         personTable.setModel(setTable());
         // clearForm juga mereset selectedIndex agar tidak menunjuk data yang sudah terhapus
         clearForm();
-        System.out.println("Delete Succeed");
         JOptionPane.showMessageDialog(null, "Delete Data Succeed");
 
     }
