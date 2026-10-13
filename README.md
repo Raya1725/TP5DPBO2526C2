@@ -90,16 +90,17 @@ Penjelasan atribut dan method dari class PeopleMenu. Class ini turunan dari JFra
 Dokumentasi berupa video dari setiap fitur program.
 
 ### Tambah data
-[InsertData.webm](https://github.com/user-attachments/assets/fba6015c-de9c-4f44-8fb7-a680bbcb148e)
+[InsertData.webm](https://github.com/user-attachments/assets/ddce2288-5849-4cbc-92a1-2ab05b4055af)
 
 
 ### Ubah data
-[UpdateData.webm](https://github.com/user-attachments/assets/f8d6181a-0e5e-4f98-b14b-bea7538ff731)
+[UpdateData.webm](https://github.com/user-attachments/assets/ca88ffc1-85f2-4cc4-9a96-b38212ba89d8)
 
 
 ### Hapus data
-[DeleteData.webm](https://github.com/user-attachments/assets/08ce35eb-a610-4c42-a548-b457d2a90dd0)
+[DeleteData.webm](https://github.com/user-attachments/assets/80dcedde-6274-400f-9344-8b9644223cd3)
 
 
 ### Error handling
-[ErrorHandling.webm](https://github.com/user-attachments/assets/f753c6c4-5b35-45b5-8aa8-831c40efea45)
+[ErrorHandling.webm](https://github.com/user-attachments/assets/bd7af6ab-bed5-44a1-a58b-0e4bcf0d4160)
+
