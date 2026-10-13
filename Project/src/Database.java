@@ -8,7 +8,7 @@ public class Database {
 
     public Database(){
         try{
-            connection = DriverManager.getConnection("jdbc:mysql://localhost: 3306/db_people_menu", "root", "");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_people_menu", "people_user", "password_anda");
             statement = connection.createStatement();
         }catch(SQLException e){
             throw new RuntimeException(e);
