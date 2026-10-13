@@ -5,7 +5,7 @@ TUGAS PRAKTIKUM 5 DPBO SWING GUI Renaldy Heryana (2509867) Ilmu Komputer C2 Univ
 Saya Renaldy Heryana dengan NIM 2509867 mengerjakan Tugas Praktikum 5 dalam mata kuliah Desain dan Pemrograman Berorientasi Objek untuk keberkahanNya maka saya tidak melakukan kecurangan seperti yang telah dispesifikasikan. Aamiin.
 
 # STRUKTUR REPO
-
+<img src="Dokumentasi/struktur_repo.png" alt="gambar struktur file" width="400">
 
 # DESIGN PROGRAM
 
