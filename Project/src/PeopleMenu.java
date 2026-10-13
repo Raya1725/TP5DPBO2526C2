@@ -2,7 +2,13 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 /**
  * Jendela utama untuk mengelola data Person (tambah, ubah, hapus) lewat form dan tabel.
@@ -23,6 +29,7 @@ public class PeopleMenu extends JFrame {
     private JTextField idField;
     private JTextField namaField;
     private JTextField tanggalLahirField;
+    private Database database;
     /**
      * Titik masuk program: membuat jendela lalu menampilkannya.
      *
@@ -50,18 +57,18 @@ public class PeopleMenu extends JFrame {
      * Kompleksitas: waktu O(1), memori O(1) (jumlah data awal tetap).
      */
     public void populateList(){
-        listPerson.add(new Person("P000", "Renaldy", "18-02-2007", "Software Architect", "Leader"));
-        listPerson.add(new Person("P001", "Rizky", "13-09-2007", "Electrical Engineer", "SuperVisor"));
-        listPerson.add(new Person("P002", "Noe", "17-03-2007", "English Translator", "Staff"));
-        listPerson.add(new Person("P003", "Salman", "05-11-2006", "Software Architect", "Manager"));
-        listPerson.add(new Person("P004", "Hilmy", "22-07-2007", "HRD", "Super Visor"));
-        listPerson.add(new Person("P005", "Kaisar", "30-01-2007", "Electrical Engineer", "Staff"));
-        listPerson.add(new Person("P006", "Dewi", "09-04-2006", "English Translator", "Part time"));
-        listPerson.add(new Person("P007", "Bayu", "14-12-2007", "CLown", "Staff"));
-        listPerson.add(new Person("P008", "Aulia", "27-08-2006", "HRD", "Leader"));
-        listPerson.add(new Person("P009", "Fajar", "03-06-2007", "Software Architect", "Super Visor"));
-        listPerson.add(new Person("P010", "Nadia", "19-10-2006", "English Translator", "Manager"));
-        listPerson.add(new Person("P011", "Rafi", "11-02-2007", "CLown", "Part time"));
+        listPerson.add(new Person("P000", "Renaldy", "2007-02-18", "Software Architect", "Leader"));
+        listPerson.add(new Person("P001", "Rizky", "2007-09-13", "Electrical Engineer", "SuperVisor"));
+        listPerson.add(new Person("P002", "Noe", "2007-03-17", "English Translator", "Staff"));
+        listPerson.add(new Person("P003", "Salman", "2006-11-05", "Software Architect", "Manager"));
+        listPerson.add(new Person("P004", "Hilmy", "2007-07-22", "HRD", "Super Visor"));
+        listPerson.add(new Person("P005", "Kaisar", "2007-01-30", "Electrical Engineer", "Staff"));
+        listPerson.add(new Person("P006", "Dewi", "2006-04-09", "English Translator", "Part time"));
+        listPerson.add(new Person("P007", "Bayu", "2007-12-14", "CLown", "Staff"));
+        listPerson.add(new Person("P008", "Aulia", "2006-08-27", "HRD", "Leader"));
+        listPerson.add(new Person("P009", "Fajar", "2007-06-03", "Software Architect", "Super Visor"));
+        listPerson.add(new Person("P010", "Nadia", "2006-10-19", "English Translator", "Manager"));
+        listPerson.add(new Person("P011", "Rafi", "2007-02-11", "CLown", "Part time"));
     }
 
     /**
@@ -74,22 +81,47 @@ public class PeopleMenu extends JFrame {
      * Kompleksitas: waktu O(n), memori O(n), dengan n = jumlah Person.
      */
     public final DefaultTableModel setTable(){
-        Object[] cols = {"No", "Id Karyawan", "Nama", "Tanggal Lahir", "posisi", "Jabatan"};
+        Object[] cols = {"Id Karyawan", "Nama", "Tanggal Lahir", "posisi", "Jabatan"};
         // Parameter pertama null karena baris diisi lewat addRow di bawah
         DefaultTableModel temp = new DefaultTableModel(null, cols);
-        for(int i = 0; i < listPerson.size(); i++){
-            Object[] row = {
-                    // Nomor urut dihitung dari indeks, bukan disimpan di Person,
-                    // agar tetap berurutan setelah ada data yang dihapus
-                    i + 1,listPerson.get(i).getId(),
-                    listPerson.get(i).getNama(),
-                    listPerson.get(i).getTanggalLahir(),
-                    listPerson.get(i).getPosisi(),
-                    listPerson.get(i).getJabatan()
-            };
-            temp.addRow(row);
+        try{
+            ResultSet resultSet = database.selectQuery("SELECT * FROM employee_data");
+            int i = 0;
+            while(resultSet.next()){
+                Object[] row = new Object[5];
+                row[0] = resultSet.getString("id");
+                row[1] = resultSet.getString("nama");
+                row[2] = resultSet.getString("tanggal_lahir");
+                row[3] = resultSet.getString("posisi");
+                row[4] = resultSet.getString("jabatan");
+                temp.addRow(row);
+                i++;
+            }
+        } catch(SQLException e) {
+            throw new RuntimeException(e);
         }
         return temp;
+    }
+
+    // STRICT agar tanggal yang tidak ada di kalender (31-02-2007) ditolak, bukan dibulatkan otomatis
+    private static final DateTimeFormatter FORMAT_TANGGAL = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
+
+    /**
+     * Memeriksa apakah teks adalah tanggal lahir yang valid.
+     *
+     * @param tanggalLahir teks dengan format dd-MM-yyyy
+     * @return true jika formatnya benar, tanggalnya ada di kalender, dan tidak di masa depan
+     *
+     * Kompleksitas: waktu O(1), memori O(1).
+     */
+    public boolean isTanggalLahirValid(String tanggalLahir) {
+        try {
+            LocalDate tanggal = LocalDate.parse(tanggalLahir, FORMAT_TANGGAL);
+            return !tanggal.isAfter(LocalDate.now());
+        } catch (DateTimeParseException e) {
+            // Format salah atau tanggal tidak ada: dianggap tidak valid, pesan ditampilkan oleh pemanggil
+            return false;
+        }
     }
 
     /**
@@ -99,6 +131,7 @@ public class PeopleMenu extends JFrame {
      * Kompleksitas: waktu O(1), memori O(1).
      */
     public void clearForm(){
+        idField.setEditable(true);
         idField.setText("");
         namaField.setText("");
         tanggalLahirField.setText("");
@@ -147,10 +180,15 @@ public class PeopleMenu extends JFrame {
      * tabel dibangun ulang, memori O(n).
      */
     public void insertData() {
-        String id = idField.getText();
+        String id = idField.getText().trim();
 
+        if(id.isEmpty()){
+            JOptionPane.showMessageDialog(null, "id tidak boleh kosong");
+            idField.requestFocus();
+            idField.selectAll();
+        }
         // startsWith aman untuk ID kosong, tidak seperti charAt(0) yang melempar exception
-        if (!id.startsWith("P")) {
+        else if (!id.startsWith("P")) {
             JOptionPane.showMessageDialog(null, "id harus di awali dengan P...!!");
             idField.requestFocus();
             // Teks diblok agar pengguna bisa langsung mengetik ulang tanpa menghapus manual
@@ -176,13 +214,36 @@ public class PeopleMenu extends JFrame {
             String posisi = posisiComboBox.getSelectedItem().toString();
             String jabatan = jabatanComboBox.getSelectedItem().toString();
 
-            listPerson.add(new Person(id, nama, tanggalLahir, posisi, jabatan));
+            if(nama.isEmpty()){
+                JOptionPane.showMessageDialog(null, "nama tidak boleh kosong");
+                namaField.requestFocus();
+                namaField.selectAll();
+            }
+            else if(tanggalLahir.isEmpty()){
+                JOptionPane.showMessageDialog(null, "tanggal lahir tidak boleh kosong");
+                tanggalLahirField.requestFocus();
+                tanggalLahirField.selectAll();
+            }
 
-            // Model diganti agar baris baru muncul di tabel
-            personTable.setModel(setTable());
+            else if(!isTanggalLahirValid(tanggalLahir)){
+                JOptionPane.showMessageDialog(null, "tanggal lahir harus valid dengan format yyyy-MM-dd");
+                tanggalLahirField.requestFocus();
+                tanggalLahirField.selectAll();
+            }
 
-            clearForm();
-            JOptionPane.showMessageDialog(null, "Add Data succeed");
+            else{
+                String sqlQuery = "INSERT INTO employee_data (id, nama, tanggal_lahir, posisi, jabatan) VALUES('"
+                        + id + "', '" + nama + "', '" + tanggalLahir + "', '" + posisi + "', '" + jabatan + "')";
+                    database.insertUpdateDeleteQuery(sqlQuery);
+
+                listPerson.add(new Person(id, nama, tanggalLahir, posisi, jabatan));
+
+                // Model diganti agar baris baru muncul di tabel
+                personTable.setModel(setTable());
+
+                clearForm();
+                JOptionPane.showMessageDialog(null, "Add Data succeed");
+            }
         }
     }
 
@@ -194,41 +255,48 @@ public class PeopleMenu extends JFrame {
      * tabel dibangun ulang, memori O(n).
      */
     public void updateData() {
-        String id = idField.getText();
         Person dipilih = listPerson.get(selectedIndex);
 
-        if (!id.startsWith("P")) {
-            JOptionPane.showMessageDialog(null, "id harus di awali dengan P...!!");
-            idField.requestFocus();
-            idField.selectAll();
-        }
-        // ID milik data yang sedang diedit dikecualikan, agar ID yang tidak diubah tidak dianggap duplikat
-        else if (!id.equalsIgnoreCase(dipilih.getId()) && datachecking(id) == 1) {
-            JOptionPane.showMessageDialog(null, "id sudah ada, masukan id lain!!");
-            idField.requestFocus();
-            idField.selectAll();
-        }
-        else if (posisiComboBox.getSelectedIndex() == 0) {
+        if (posisiComboBox.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(null, "pilih posisi dengan benar");
-            posisiComboBox.requestFocus();
         }
         else if (jabatanComboBox.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(null, "pilih jabatan dengan benar");
-            jabatanComboBox.requestFocus();
         }
         else {
             // Objek Person yang sudah ada diubah langsung, bukan diganti objek baru
-            dipilih.setId(id);
-            dipilih.setNama(namaField.getText());
-            dipilih.setTanggalLahir(tanggalLahirField.getText());
-            dipilih.setPosisi(posisiComboBox.getSelectedItem().toString());
-            dipilih.setJabatan(jabatanComboBox.getSelectedItem().toString());
+            String nama = namaField.getText().trim();
+            String tanggalLahir = tanggalLahirField.getText().trim();
+            if(nama.isEmpty()){
+                JOptionPane.showMessageDialog(null, "nama tidak boleh kosong");
+            }
+            else if(tanggalLahir.isEmpty()){
+                JOptionPane.showMessageDialog(null, "tanggal lahir tidak boleh kosong");
+            }
 
-            // Model diganti agar perubahan terlihat di tabel
-            personTable.setModel(setTable());
+            else if(!isTanggalLahirValid(tanggalLahir)){
+                JOptionPane.showMessageDialog(null, "tanggal lahir harus valid dengan format yyyy-MM-dd");
+            }
 
-            clearForm();
-            JOptionPane.showMessageDialog(null, "Update Data Succeed");
+            else{
+                String id = dipilih.getId();
+                dipilih.setNama(nama);
+                dipilih.setTanggalLahir(tanggalLahir);
+                dipilih.setPosisi(posisiComboBox.getSelectedItem().toString());
+                dipilih.setJabatan(jabatanComboBox.getSelectedItem().toString());
+
+                String sqlQuery = "UPDATE employee_data set nama = '"+ nama +"', tanggal_lahir = '"+ tanggalLahir +"', " +
+                        "posisi = '"+ posisiComboBox.getSelectedItem().toString() + "', jabatan = '"+ jabatanComboBox.getSelectedItem().toString() +"' WHERE id = '"+ id +"'";
+                database.insertUpdateDeleteQuery(sqlQuery);
+
+
+                // Model diganti agar perubahan terlihat di tabel
+                personTable.setModel(setTable());
+
+                clearForm();
+                JOptionPane.showMessageDialog(null, "Update Data Succeed");
+
+            }
         }
     }
 
@@ -240,6 +308,9 @@ public class PeopleMenu extends JFrame {
      * tabel), memori O(n).
      */
     public void deleteData(){
+        Person orangHapus = listPerson.get(selectedIndex);
+        String sqlQuery = "DELETE FROM employee_data WHERE id = '"+ orangHapus.getId() +"' ";
+        database.insertUpdateDeleteQuery(sqlQuery);
         listPerson.remove(selectedIndex);
         personTable.setModel(setTable());
         // clearForm juga mereset selectedIndex agar tidak menunjuk data yang sudah terhapus
@@ -256,6 +327,7 @@ public class PeopleMenu extends JFrame {
      */
     public PeopleMenu(){
         listPerson = new ArrayList<>();
+        database = new Database();
         populateList();
         // Tabel diisi di awal supaya data awal langsung tampil
         personTable.setModel(setTable());
@@ -305,17 +377,16 @@ public class PeopleMenu extends JFrame {
         personTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                idField.setEditable(false);
                 // Baris yang diklik menjadi target operasi update atau delete
                 selectedIndex = personTable.getSelectedRow();
                 // Kolom 0 (No) dilewati karena hanya nomor urut tampilan
-                String id = personTable.getModel().getValueAt(selectedIndex, 1).toString();
                 String nama = personTable.getModel().getValueAt(selectedIndex, 2).toString();
                 String tanggalLahir = personTable.getModel().getValueAt(selectedIndex, 3).toString();
                 String posisi = personTable.getModel().getValueAt(selectedIndex, 4).toString();
                 String jabatan = personTable.getModel().getValueAt(selectedIndex, 5).toString();
 
                 // Menampilkan data baris terpilih di form agar dapat diedit
-                idField.setText(id);
                 namaField.setText(nama);
                 tanggalLahirField.setText(tanggalLahir);
                 posisiComboBox.setSelectedItem(posisi);
